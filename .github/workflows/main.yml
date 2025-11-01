@@ -2,7 +2,11 @@ name: Deploy Vue (Static)
 
 on:
   push:
-    branches: [ master ]   # ou main, se o seu branch for main
+    branches: [ master ]   # troque para main se for o seu padrão
+
+concurrency:
+  group: vue-static-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build-and-deploy:
@@ -19,25 +23,38 @@ jobs:
 
       - name: Enable Corepack (Yarn 4)
         run: |
+          set -e
           corepack enable
           corepack prepare yarn@stable --activate
+          yarn -v
 
       - name: Install deps (Yarn 4)
         run: yarn install --immutable --check-cache
 
       - name: Build
         env:
-          VITE_API_URL: ${{ vars.VITE_API_URL }}   # opcional, se você criou variável
+          VITE_API_URL: ${{ vars.VITE_API_URL }}   # opcional
         run: yarn build
 
-      # (opcional) Faça zip dos arquivos para conferência em "Artifacts"
-      - name: Archive dist
+      - name: Archive dist (opcional)
         uses: actions/upload-artifact@v4
         with:
           name: dist
           path: dist
 
-      # Copia dist/ para o servidor
+      # garante que a pasta alvo existe
+      - name: Ensure target dir
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            set -e
+            mkdir -p "${{ secrets.TARGET_DIR }}/__incoming"
+            mkdir -p "${{ secrets.TARGET_DIR }}/.well-known"
+
       - name: Upload dist via SCP
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -47,8 +64,9 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           source: "dist/*"
           target: "${{ secrets.TARGET_DIR }}/__incoming"
+          timeout: 2m
+          command_timeout: 15m
 
-      # Limpa Document Root e move o novo build (troca atômica simples)
       - name: Activate new build
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -59,19 +77,20 @@ jobs:
           script: |
             set -e
             cd "${{ secrets.TARGET_DIR }}"
-            # preserva .well-known (Let's Encrypt), se existir
-            mkdir -p __backup __incoming
-            mkdir -p .well-known || true
-            # move o build antigo p/ backup (mantém só 2 backups)
+            # backup simples (mantém 2 últimos)
+            mkdir -p __backup
             if [ -d current ]; then mv -f current "__backup/$(date +%Y%m%d%H%M%S)"; fi
-            # cria nova pasta current e move o dist recém-enviado
             mkdir -p current
-            cp -R __incoming/* current/
+            shopt -s nullglob
+            # move o conteúdo novo para "current" (não falha se vazio)
+            for f in __incoming/*; do mv -f "$f" current/; done
             rm -rf __incoming/*
-            # publica: servir a pasta current como docroot
-            # Se seu Document Root HOJE aponta para a raiz do TARGET_DIR,
-            # mova os arquivos da "current" para a raiz:
-            rsync -a --delete current/ ./
-            # mantém .well-known
-            rsync -a .well-known/ .well-known/ 2>/dev/null || true
+
+            # publique para o docroot:
+            # => SE o Document Root for a RAIZ do site:
+            rsync -a --delete --exclude '.well-known/' current/ ./
+
+            # => SE o Document Root for ./public/, use esta em vez da de cima:
+            # rsync -a --delete --exclude '.well-known/' current/ ./public/
+
             echo "Deploy finalizado em $(date)"
