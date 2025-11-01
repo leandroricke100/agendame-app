@@ -34,7 +34,7 @@
 
             <template #subtitle>
               <div class="text-subtitle-1">
-                Change this page by updating #2.
+                Change this page by updating #3.
               </div>
             </template>
           </v-card>
