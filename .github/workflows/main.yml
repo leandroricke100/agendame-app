@@ -1,74 +1,43 @@
-name: Deploy agendame-app (Vue)
+name: Deploy Vue (simples)
 
 on:
   push:
-    branches: [ master ]   # troque para main se seu padrão for main
+    branches: [ master ]  # troque para main se necessário
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Deploy via SSH (build no servidor)
+      - name: Deploy via SSH (git pull + build)
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ secrets.SSH_HOST }}     # use o MESMO host do Laravel (de preferência IP)
-          port: ${{ secrets.SSH_PORT }}     # mesma porta do Laravel
-          username: ${{ secrets.SSH_USER }} # mesmo usuário do Laravel
-          key: ${{ secrets.SSH_KEY }}       # MESMA chave que já funciona no Laravel
+          host: ${{ secrets.SSH_HOST }}
+          port: ${{ secrets.SSH_PORT }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
           timeout: 180s
           command_timeout: 15m
           script: |
             set -e
+            DIR="${{ secrets.TARGET_DIR }}"
 
-            APP_DIR="/home/agendame-app/htdocs/agendame-app"
-            echo ">> Entrando em ${APP_DIR}"
-            cd "${APP_DIR}"
+            echo ">> cd ${DIR}"
+            cd "$DIR"
 
-            echo ">> Atualizando código"
-            if [ -d .git ]; then
-              git fetch origin
-              git checkout master
-              git reset --hard origin/master
-            else
-              echo "Diretório não é um repo git. Abortando."
-              exit 1
-            fi
+            echo ">> git pull"
+            git pull --ff-only origin master || git pull
 
-            echo ">> Configurando Node/Yarn"
-            # Corepack (Yarn 4) se disponível; senão, caímos para npm
+            echo ">> build"
+            # tenta usar yarn; se não tiver, usa npm
             if command -v corepack >/dev/null 2>&1; then
               corepack enable || true
               corepack prepare yarn@stable --activate || true
-              YARN_OK=1
-            else
-              YARN_OK=0
             fi
 
-            echo ">> Instalando dependências"
-            if [ "$YARN_OK" = "1" ] && command -v yarn >/dev/null 2>&1; then
-              yarn -v || true
-              yarn install --immutable --check-cache || yarn install
-            else
-              # fallback para npm
-              if command -v npm >/dev/null 2>&1; then
-                npm ci || npm install
-              else
-                echo "Nem yarn nem npm encontrados. Instale Node corretamente neste servidor."
-                exit 1
-              fi
-            fi
-
-            echo ">> Build (Vite)"
-            export VITE_API_URL="${{ secrets.VITE_API_URL }}"
-            if [ "$YARN_OK" = "1" ] && command -v yarn >/dev/null 2>&1; then
-              yarn build
+            if command -v yarn >/dev/null 2>&1; then
+              yarn run build
             else
               npm run build
             fi
 
-            echo ">> Verificando saída"
-            test -d dist || (echo "Build não gerou 'dist'"; exit 1)
-            echo "Conteúdo de dist/"
-            ls -lah dist
-
-            echo ">> Deploy concluído em $(date)"
+            echo ">> OK - $(date)"
