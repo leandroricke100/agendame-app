@@ -1,128 +1,74 @@
-name: Deploy Vue (Static)
+name: Deploy agendame-app (Vue)
 
 on:
   push:
-    branches: [ master ]   # troque para main se for o seu padrão
-
-concurrency:
-  group: vue-static-${{ github.ref }}
-  cancel-in-progress: true
+    branches: [ master ]   # troque para main se seu padrão for main
 
 jobs:
-  build-and-deploy:
+  deploy:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      # Yarn 4 (Corepack)
-      - name: Enable Corepack (Yarn 4)
-        run: |
-          set -e
-          corepack enable
-          corepack prepare yarn@stable --activate
-          yarn -v
-
-      - name: Install deps (Yarn 4)
-        run: yarn install --immutable --check-cache
-
-      - name: Build
-        env:
-          # use vars (ou secrets) para a URL da API
-          VITE_API_URL: ${{ secrets.VITE_API_URL }}
-        run: yarn build
-
-      # artefato opcional para inspeção do build
-      - name: Archive dist (optional)
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: dist
-          path: dist
-
-      # 0) teste rápido de SSH para evitar "i/o timeout" mascarado
-      - name: SSH smoke test
+      - name: Deploy via SSH (build no servidor)
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ secrets.SSH_HOST }}
-          port: ${{ secrets.SSH_PORT }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_KEY }}
-          timeout: 120s
-          command_timeout: 2m
-          script: |
-            set -e
-            echo "connected as $(whoami) on $(hostname)"
-            # cria pastas de trabalho e doc de ACME se necessário
-            mkdir -p "${{ secrets.TARGET_DIR }}/__incoming"
-            mkdir -p "${{ secrets.TARGET_DIR }}/.well-known"
-
-      # 1) garante que a pasta alvo existe (idempotente)
-      - name: Ensure target dir
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          port: ${{ secrets.SSH_PORT }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_KEY }}
-          timeout: 120s
-          command_timeout: 5m
-          script: |
-            set -e
-            mkdir -p "${{ secrets.TARGET_DIR }}/__incoming"
-            mkdir -p "${{ secrets.TARGET_DIR }}/.well-known"
-
-      # 2) upload do build estático
-      - name: Upload dist via SCP
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          port: ${{ secrets.SSH_PORT }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_KEY }}
-          source: "dist/*"
-          target: "${{ secrets.TARGET_DIR }}/__incoming"
-          timeout: 120s
+          host: ${{ secrets.SSH_HOST }}     # use o MESMO host do Laravel (de preferência IP)
+          port: ${{ secrets.SSH_PORT }}     # mesma porta do Laravel
+          username: ${{ secrets.SSH_USER }} # mesmo usuário do Laravel
+          key: ${{ secrets.SSH_KEY }}       # MESMA chave que já funciona no Laravel
+          timeout: 180s
           command_timeout: 15m
-
-      # 3) ativação atômica do novo build
-      - name: Activate new build
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          port: ${{ secrets.SSH_PORT }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_KEY }}
-          timeout: 120s
-          command_timeout: 5m
           script: |
             set -e
-            cd "${{ secrets.TARGET_DIR }}"
 
-            # backup simples do current
-            mkdir -p __backup current
-            if [ -d current ] && [ "$(ls -A current)" ]; then
-              ts="$(date +%Y%m%d%H%M%S)"
-              mkdir -p "__backup/${ts}"
-              rsync -a current/ "__backup/${ts}/"
+            APP_DIR="/home/agendame-app/htdocs/agendame-app"
+            echo ">> Entrando em ${APP_DIR}"
+            cd "${APP_DIR}"
+
+            echo ">> Atualizando código"
+            if [ -d .git ]; then
+              git fetch origin
+              git checkout master
+              git reset --hard origin/master
+            else
+              echo "Diretório não é um repo git. Abortando."
+              exit 1
             fi
 
-            # move artefatos novos para "current"
-            shopt -s nullglob
-            for f in __incoming/*; do mv -f "$f" current/; done
-            rm -rf __incoming/*
+            echo ">> Configurando Node/Yarn"
+            # Corepack (Yarn 4) se disponível; senão, caímos para npm
+            if command -v corepack >/dev/null 2>&1; then
+              corepack enable || true
+              corepack prepare yarn@stable --activate || true
+              YARN_OK=1
+            else
+              YARN_OK=0
+            fi
 
-            # publique para o docroot:
-            # -> se o DocumentRoot do Nginx/APache for a RAIZ do TARGET_DIR:
-            rsync -a --delete --exclude '.well-known/' current/ ./
+            echo ">> Instalando dependências"
+            if [ "$YARN_OK" = "1" ] && command -v yarn >/dev/null 2>&1; then
+              yarn -v || true
+              yarn install --immutable --check-cache || yarn install
+            else
+              # fallback para npm
+              if command -v npm >/dev/null 2>&1; then
+                npm ci || npm install
+              else
+                echo "Nem yarn nem npm encontrados. Instale Node corretamente neste servidor."
+                exit 1
+              fi
+            fi
 
-            # -> se o DocumentRoot for ./public/, use esta linha no lugar da de cima:
-            # rsync -a --delete --exclude '.well-known/' current/ ./public/
+            echo ">> Build (Vite)"
+            export VITE_API_URL="${{ secrets.VITE_API_URL }}"
+            if [ "$YARN_OK" = "1" ] && command -v yarn >/dev/null 2>&1; then
+              yarn build
+            else
+              npm run build
+            fi
 
-            echo "Deploy finalizado em $(date)"
+            echo ">> Verificando saída"
+            test -d dist || (echo "Build não gerou 'dist'"; exit 1)
+            echo "Conteúdo de dist/"
+            ls -lah dist
+
+            echo ">> Deploy concluído em $(date)"
