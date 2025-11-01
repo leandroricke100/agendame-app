@@ -1,52 +1,64 @@
-name: Deploy Vue (npm, simples)
+name: Deploy Vue to VPS (SSH)
 
 on:
   push:
-    branches: [ master ]   # troque para main se for o seu padrão
-  workflow_dispatch:
-
-concurrency:
-  group: vue-${{ github.ref }}
-  cancel-in-progress: true
+    branches: [ master ]  # ajuste se seu branch for "main"
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Deploy via SSH (git pull + npm build no servidor)
+      # (Opcional) Apenas para log — o build acontece no servidor
+      - name: Checkout (for logs only)
+        uses: actions/checkout@v4
+
+      # Conecta no servidor e roda os comandos de deploy lá
+      - name: SSH to VPS and deploy
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ secrets.SSH_HOST }}      # use o IP
-          port: ${{ secrets.SSH_PORT }}      # 22 (ou sua porta)
-          username: ${{ secrets.SSH_USER }}  # mesmo usuário do Laravel (se possível)
-          key: ${{ secrets.SSH_KEY }}        # privada correspondente ao authorized_keys do usuário
-          timeout: 180s
-          command_timeout: 20m
+          host: ${{ secrets.SSH_HOST }}        # ex: my-vps (ou IP)
+          username: ${{ secrets.SSH_USER }}    # ex: agendame-app
+          key: ${{ secrets.SSH_KEY }}          # sua PRIVATE key (formato PEM)
+          port: 22                             # sua porta está aberta (22)
+          script_stop: true
           script: |
-            set -e
-            APP_DIR="${{ secrets.TARGET_DIR }}"   # ex.: /home/agendame-app/htdocs/agendame-app
-            echo ">> cd ${APP_DIR}"
-            cd "${APP_DIR}"
+            set -euo pipefail
 
-            echo ">> git fetch / reset hard para origin/master"
-            git fetch origin
-            git checkout master || true
-            git reset --hard origin/master
-
-            echo ">> instalar dependências (npm)"
-            if command -v npm >/dev/null 2>&1; then
-              npm ci || npm install
-            else
-              echo "npm não encontrado. Instale Node/npm no VPS."
-              exit 1
+            # Carrega ambiente do usuário (nvm/corepack, etc.)
+            if [ -f "$HOME/.bashrc" ]; then
+              source "$HOME/.bashrc"
+            fi
+            if [ -f "$HOME/.profile" ]; then
+              source "$HOME/.profile"
             fi
 
-            echo ">> build de produção"
-            export VITE_API_URL="${{ secrets.VITE_API_URL }}"
-            npm run build
+            echo "-> Indo para a pasta do projeto"
+            cd "$HOME/htdocs/agendame-app"
 
-            echo ">> conferindo dist/"
-            test -d dist || (echo "Build não gerou dist/"; exit 1)
-            ls -lah dist | head -n 50
+            echo "-> Garantindo árvore limpa e atualizada"
+            git fetch origin
+            # Evita erro de 'local changes' e arquivos não rastreados (.yarn/*, yarn.lock)
+            git reset --hard origin/master
+            # Se tiver submódulos (provável que não)
+            if [ -f .gitmodules ]; then
+              git submodule update --init --recursive
+            fi
 
-            echo "OK $(date)"
+            echo "-> Habilitando Corepack (Yarn 4)"
+            command -v corepack >/dev/null 2>&1 || true
+            corepack enable || true
+
+            # (Opcional) Fixar Yarn estável
+            yarn set version stable || true
+
+            echo "-> Instalando dependências (respeitando lockfile se existir)"
+            # Tenta modo imutável primeiro (Yarn 4). Se não, cai no normal.
+            yarn install --immutable || yarn install
+
+            echo "-> Build de produção"
+            yarn run build
+
+            # Se seu Nginx aponta para ~/htdocs/agendame-app/dist,
+            # não precisa reiniciar nada: os arquivos já foram atualizados.
+            echo "-> Deploy concluído (dist/ atualizado)"
