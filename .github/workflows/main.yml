@@ -1,9 +1,9 @@
-name: Deploy agendame-app (Vue)
+name: Deploy Vue (npm, simples)
 
 on:
   push:
     branches: [ master ]   # troque para main se for o seu padrão
-  workflow_dispatch:       # permite rodar manualmente
+  workflow_dispatch:
 
 concurrency:
   group: vue-${{ github.ref }}
@@ -13,61 +13,40 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Deploy via SSH (git pull + build no servidor)
+      - name: Deploy via SSH (git pull + npm build no servidor)
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ secrets.SSH_HOST }}      # use o MESMO IP/host que funciona no Laravel
-          port: ${{ secrets.SSH_PORT }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_KEY }}
+          host: ${{ secrets.SSH_HOST }}      # use o IP
+          port: ${{ secrets.SSH_PORT }}      # 22 (ou sua porta)
+          username: ${{ secrets.SSH_USER }}  # mesmo usuário do Laravel (se possível)
+          key: ${{ secrets.SSH_KEY }}        # privada correspondente ao authorized_keys do usuário
           timeout: 180s
           command_timeout: 20m
           script: |
             set -e
-
             APP_DIR="${{ secrets.TARGET_DIR }}"   # ex.: /home/agendame-app/htdocs/agendame-app
             echo ">> cd ${APP_DIR}"
             cd "${APP_DIR}"
 
-            echo ">> Sincronizando código"
-            if [ -d .git ]; then
-              # garante a branch correta e sincroniza com o remoto
-              git fetch origin
-              git checkout master || true
-              git reset --hard origin/master
-            else
-              echo "Diretório não é um repo git. Abortando."
-              exit 1
-            fi
+            echo ">> git fetch / reset hard para origin/master"
+            git fetch origin
+            git checkout master || true
+            git reset --hard origin/master
 
-            echo ">> Preparando Node/Yarn"
-            if command -v corepack >/dev/null 2>&1; then
-              corepack enable || true
-              corepack prepare yarn@stable --activate || true
-            fi
-
-            echo ">> Instalando dependências"
-            if command -v yarn >/dev/null 2>&1; then
-              yarn -v || true
-              # tenta instalação determinística; se falhar, instala normal
-              yarn install --immutable --check-cache || yarn install
-            elif command -v npm >/dev/null 2>&1; then
+            echo ">> instalar dependências (npm)"
+            if command -v npm >/dev/null 2>&1; then
               npm ci || npm install
             else
-              echo "Node package manager não encontrado (yarn/npm)."
+              echo "npm não encontrado. Instale Node/npm no VPS."
               exit 1
             fi
 
-            echo ">> Build de produção (Vite)"
+            echo ">> build de produção"
             export VITE_API_URL="${{ secrets.VITE_API_URL }}"
-            if command -v yarn >/dev/null 2>&1; then
-              yarn run build
-            else
-              npm run build
-            fi
+            npm run build
 
-            echo ">> Conferindo saída"
-            test -d dist || (echo "Build não gerou 'dist/'"; exit 1)
+            echo ">> conferindo dist/"
+            test -d dist || (echo "Build não gerou dist/"; exit 1)
             ls -lah dist | head -n 50
 
-            echo ">> Deploy finalizado em $(date)"
+            echo "OK $(date)"
