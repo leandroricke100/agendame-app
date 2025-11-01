@@ -34,7 +34,7 @@
 
             <template #subtitle>
               <div class="text-subtitle-1">
-                Change this page by updating #1<v-kbd>{{ `<HelloWorld />` }}</v-kbd> in <v-kbd>components/HelloWorld.vue</v-kbd>.
+                Change this page by updating #2<v-kbd>{{ `<HelloWorld />` }}</v-kbd> in <v-kbd>components/HelloWorld.vue</v-kbd>.
               </div>
             </template>
           </v-card>
