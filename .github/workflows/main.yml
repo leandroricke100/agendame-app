@@ -16,15 +16,14 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'yarn'       # troque para 'npm' se usar npm
 
-      - name: Enable Corepack (Yarn)
+      - name: Enable Corepack (Yarn 4)
         run: |
           corepack enable
           corepack prepare yarn@stable --activate
 
-      - name: Install deps
-        run: yarn install --frozen-lockfile
+      - name: Install deps (Yarn 4)
+        run: yarn install --immutable --check-cache
 
       - name: Build
         env:
