@@ -17,7 +17,7 @@ import LoginForm from '@/components/auth/LoginForm.vue';
                             <LoginForm />
                             <h6 class="text-h6 text-muted font-weight-medium d-flex justify-center align-center mt-3">
                                 New to Modernize?
-                                <RouterLink to="/auth/register"
+                                <RouterLink :to="{ name: 'register' }"
                                     class="text-primary text-decoration-none text-body-1 opacity-1 font-weight-medium pl-2">
                                     Create an account</RouterLink>
                             </h6>
