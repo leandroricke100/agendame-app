@@ -420,6 +420,24 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@iconify/types@npm:^2.0.0":
+  version: 2.0.0
+  resolution: "@iconify/types@npm:2.0.0"
+  checksum: 10c0/65a3be43500c7ccacf360e136d00e1717f050b7b91da644e94370256ac66f582d59212bdb30d00788aab4fc078262e91c95b805d1808d654b72f6d2072a7e4b2
+  languageName: node
+  linkType: hard
+
+"@iconify/vue@npm:^5.0.0":
+  version: 5.0.0
+  resolution: "@iconify/vue@npm:5.0.0"
+  dependencies:
+    "@iconify/types": "npm:^2.0.0"
+  peerDependencies:
+    vue: ">=3"
+  checksum: 10c0/363133a77bf697c4cebda2af776ca6fce312d15742a5ed6a2114d79d032814b15f04bcc1cec51cee31256f1a62dc64b0dbbcfe4e341692cb2dca64f0561fa1c0
+  languageName: node
+  linkType: hard
+
 "@isaacs/cliui@npm:^8.0.2":
   version: 8.0.2
   resolution: "@isaacs/cliui@npm:8.0.2"
@@ -1277,6 +1295,7 @@ __metadata:
   resolution: "agendame-app@workspace:."
   dependencies:
     "@fontsource/roboto": "npm:5.2.7"
+    "@iconify/vue": "npm:^5.0.0"
     "@mdi/font": "npm:7.4.47"
     "@vitejs/plugin-vue": "npm:^6.0.1"
     eslint: "npm:^9.35.0"
@@ -1292,6 +1311,7 @@ __metadata:
     vite-plugin-vuetify: "npm:^2.1.2"
     vue: "npm:^3.5.21"
     vue-router: "npm:^4.5.1"
+    vue-tabler-icons: "npm:^2.21.0"
     vuetify: "npm:^3.10.1"
   languageName: unknown
   linkType: soft
@@ -4458,6 +4478,13 @@ __metadata:
   peerDependencies:
     vue: ^3.5.0
   checksum: 10c0/4528f4fded4b45b07d4e096116e9b5fd602af463e735f7e5133b1a258ce325ebc894dd7bc962a937556615fd42d06b0fb290dfae90e96f237862b7f74baa22a0
+  languageName: node
+  linkType: hard
+
+"vue-tabler-icons@npm:^2.21.0":
+  version: 2.21.0
+  resolution: "vue-tabler-icons@npm:2.21.0"
+  checksum: 10c0/73d618b3d1ee672d2ce03098405b5be6d40fe8c565037e930310132acb8844c7361d56abffadb84050f5b46313de628e95f61194eef89f00925661efe03a34a6
   languageName: node
   linkType: hard
 
