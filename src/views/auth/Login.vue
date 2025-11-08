@@ -2,21 +2,6 @@
 import Logo from '@/layouts/full/logo/Logo.vue';
 /* Login form */
 import LoginForm from '@/components/auth/LoginForm.vue';
-
-import axios from 'axios';
-
-axios.defaults.withCredentials = true;
-axios.defaults.withXSRFToken = true;
-
-axios.get('http://localhost:8000/sanctum/csrf-cookie')
-  .then(() => {
-    axios.post('http://localhost:8000/api/login', {
-      email: 'test@example.com',
-      password: 'password'
-    })
-  });
-
-
 </script>
 <template>
   <div class="authentication">
@@ -28,13 +13,12 @@ axios.get('http://localhost:8000/sanctum/csrf-cookie')
               <div class="d-flex justify-center py-4">
                 <Logo />
               </div>
-              <div class="text-body-1 text-muted text-center mb-3">Your Social Campaigns</div>
               <LoginForm />
               <h6 class="text-h6 text-muted font-weight-medium d-flex justify-center align-center mt-3">
-                New to Modernize?
+                Novo no AgendaMe
                 <RouterLink :to="{ name: 'register' }"
                   class="text-primary text-decoration-none text-body-1 opacity-1 font-weight-medium pl-2">
-                  Create an account</RouterLink>
+                  Crie uma conta</RouterLink>
               </h6>
             </v-card-item>
           </v-card>
