@@ -1150,12 +1150,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@vue/devtools-api@npm:^7.5.2, @vue/devtools-api@npm:^7.7.2":
+"@vue/devtools-api@npm:^7.5.2":
   version: 7.7.7
   resolution: "@vue/devtools-api@npm:7.7.7"
   dependencies:
     "@vue/devtools-kit": "npm:^7.7.7"
   checksum: 10c0/9c7e754b706f54c5ace31520acb50bda398ff15eb4350b30e9dfb1c8c692094951e68ee1713c2833d79c393c53653987c65c11031a079ad391d84bf505b74264
+  languageName: node
+  linkType: hard
+
+"@vue/devtools-api@npm:^7.7.7":
+  version: 7.7.8
+  resolution: "@vue/devtools-api@npm:7.7.8"
+  dependencies:
+    "@vue/devtools-kit": "npm:^7.7.8"
+  checksum: 10c0/4277a0215a3fd15c4cfc43881c13e25723b950bf71cc97952d9b489165d9e72b92daff072f676342dc5866082bb7c168582e27e81b5609b520fbc2f932153f8a
   languageName: node
   linkType: hard
 
@@ -1174,12 +1183,36 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@vue/devtools-kit@npm:^7.7.8":
+  version: 7.7.8
+  resolution: "@vue/devtools-kit@npm:7.7.8"
+  dependencies:
+    "@vue/devtools-shared": "npm:^7.7.8"
+    birpc: "npm:^2.3.0"
+    hookable: "npm:^5.5.3"
+    mitt: "npm:^3.0.1"
+    perfect-debounce: "npm:^1.0.0"
+    speakingurl: "npm:^14.0.1"
+    superjson: "npm:^2.2.2"
+  checksum: 10c0/3624573eb0798cdaa7157b5fba3dc6c46b551406cd92a380f1c086523207554a1159dd73e3e1563affa6810b9dc062ef3e116c3cccfb7ac2690ed3683f240d38
+  languageName: node
+  linkType: hard
+
 "@vue/devtools-shared@npm:^7.7.7":
   version: 7.7.7
   resolution: "@vue/devtools-shared@npm:7.7.7"
   dependencies:
     rfdc: "npm:^1.4.1"
   checksum: 10c0/f29df17a6f5e92f6c33477279e0a22cb986fc413504918b58cf7d9fb4d541ea9e3163a947cf63212dfc19dd30351abfe1de39a8907bfef446ed02f03c06a24c9
+  languageName: node
+  linkType: hard
+
+"@vue/devtools-shared@npm:^7.7.8":
+  version: 7.7.8
+  resolution: "@vue/devtools-shared@npm:7.7.8"
+  dependencies:
+    rfdc: "npm:^1.4.1"
+  checksum: 10c0/40d6ddb606fed47c9035b675bbe92c7ccfde448fa8b58911e7b44275e5e3685804939e50e571ad68242fef92927ff926c6d2789e978bd210a5417378aee14308
   languageName: node
   linkType: hard
 
@@ -1301,7 +1334,7 @@ __metadata:
     axios: "npm:^1.13.1"
     eslint: "npm:^9.35.0"
     eslint-config-vuetify: "npm:^4.2.0"
-    pinia: "npm:^3.0.3"
+    pinia: "npm:^3.0.4"
     sass-embedded: "npm:^1.92.1"
     unplugin-auto-import: "npm:^19.3.0"
     unplugin-fonts: "npm:^1.4.0"
@@ -1316,6 +1349,7 @@ __metadata:
     vue-tabler-icons: "npm:^2.21.0"
     vuetify: "npm:^3.10.1"
     yup: "npm:^1.7.1"
+    yup-locale-pt: "npm:^0.0.9"
   languageName: unknown
   linkType: soft
 
@@ -3543,18 +3577,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"pinia@npm:^3.0.3":
-  version: 3.0.3
-  resolution: "pinia@npm:3.0.3"
+"pinia@npm:^3.0.4":
+  version: 3.0.4
+  resolution: "pinia@npm:3.0.4"
   dependencies:
-    "@vue/devtools-api": "npm:^7.7.2"
+    "@vue/devtools-api": "npm:^7.7.7"
   peerDependencies:
-    typescript: ">=4.4.4"
-    vue: ^2.7.0 || ^3.5.11
+    typescript: ">=4.5.0"
+    vue: ^3.5.11
   peerDependenciesMeta:
     typescript:
       optional: true
-  checksum: 10c0/486f464ce402e33c502caf564bebcd00c364e7d57432373f64201da0cdbbc96a6357fecb5ee09882228d3c17d400af1f0c9550ddf2d19f2ef2931860a427cc23
+  checksum: 10c0/4123efbf28c6d11f3dd052dbcf08da7ef85747fd3499807b9ca1d32dcda7807b2e68f9a7e31a06148b05093a9ebcd0c3b26e6a31b62775c6421429bd03265949
   languageName: node
   linkType: hard
 
@@ -4911,6 +4945,13 @@ __metadata:
   version: 0.1.0
   resolution: "yocto-queue@npm:0.1.0"
   checksum: 10c0/dceb44c28578b31641e13695d200d34ec4ab3966a5729814d5445b194933c096b7ced71494ce53a0e8820685d1d010df8b2422e5bf2cdea7e469d97ffbea306f
+  languageName: node
+  linkType: hard
+
+"yup-locale-pt@npm:^0.0.9":
+  version: 0.0.9
+  resolution: "yup-locale-pt@npm:0.0.9"
+  checksum: 10c0/fb542223d5e8aba47f40113dbe2c955f169c51f2c19f0ab63ed1d9fde0bc2ecba41b6cf8c11a7d5530b5174dc197ffa66842632d1a55bf6322190e820f76621d
   languageName: node
   linkType: hard
 

@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { Icon } from '@iconify/vue';
 
 import icon1 from '@/assets/images/technology/vue-cat-icon.svg';
 import icon2 from '@/assets/images/technology/angular-cat-icon.svg';
@@ -9,9 +8,9 @@ import icon5 from '@/assets/images/technology/nuxt-cat-icon.svg';
 import icon6 from '@/assets/images/technology/bt-cat-icon.svg';
 
 const items = [
-  { text: 'Templates', icon: 'window-frame-linear', url: 'https://adminmart.com/templates/vuejs/' },
-  { text: 'Help', icon: 'question-circle-linear', url: 'https://adminmart.com/support/' },
-  { text: 'Hire Us', icon: 'case-round-linear', url: 'https://adminmart.com/hire-us/' }
+  { text: 'Templates', icon: 'mdi-window-maximize', url: 'https://adminmart.com/templates/vuejs/' },
+  { text: 'Help', icon: 'mdi-help-circle-outline', url: 'https://adminmart.com/support/' },
+  { text: 'Hire Us', icon: 'mdi-briefcase-outline', url: 'https://adminmart.com/hire-us/' }
 ];
 
 const preview_link = [
@@ -40,7 +39,7 @@ const preview_link = [
         <div class="d-lg-flex d-none items-center ga-4 topbar-links border-s border-opacity-25 ps-6">
           <a v-for="(item, index) in items" :key="index" class="d-flex items-center p-0 ga-2 lh-normal" variant="text"
             :href="item.url" target="_blank">
-            <Icon :icon="'solar:' + item.icon" height="20" width="20" />
+            <v-icon :icon="item.icon" size="20" />
             {{ item.text }}
           </a>
         </div>
@@ -71,7 +70,7 @@ const preview_link = [
             href="https://adminmart.com/product/modernize-vuetify-vue-admin-dashboard/?ref=56#product-demo-section"
             target="_blank">
             <span class="d-flex ga-2">
-              <Icon icon="solar:crown-linear" height="18" width="18" /> Get Pro
+              <v-icon icon="mdi-crown-outline" size="18" /> Get Pro
             </span>
           </v-btn>
         </div>
