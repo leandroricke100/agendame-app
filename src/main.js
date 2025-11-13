@@ -6,10 +6,20 @@ import vuetify from './plugins/vuetify'
 import './plugins/yup'
 import './plugins/axios'
 import pinia from './plugins/pinia'
+import axios from 'axios';
+import { useMeStore } from './stores/me';
 
 const app = createApp(App)
-app
-  .use(router)
-  .use(pinia)
-  .use(vuetify)
-  .mount('#app')
+app.use(pinia)
+
+const meStore = useMeStore()
+
+meStore.getMe()
+  .finally(() => {
+    app
+      .use(router)
+      .use(vuetify)
+      .mount('#app')
+  })
+
+

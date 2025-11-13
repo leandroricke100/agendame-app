@@ -36,7 +36,6 @@ import { useField, useForm } from 'vee-validate'
 import { object, string } from 'yup';
 import { useAuthStore } from '../../stores/auth';
 
-
 const schema = object({
   email: string().required().email().label('E-mail'),
   password: string().required().label('Senha'),
@@ -57,29 +56,8 @@ const submit = handleSubmit(async (values) => {
 const { value: email } = useField('email')
 const { value: password } = useField('password')
 
-
-
-
-
 const feedbackMessage = ref('');
-
-
-// function login(values) {
-//   feedbackMessage.value = ''
-
-//   axios.get('http://localhost:8000/sanctum/csrf-cookie')
-//     .then(() => {
-//       axios.post('http://localhost:8000/api/login', {
-//         email: values.email,
-//         password: values.password
-//       }).catch(() => {
-//         feedbackMessage.value = 'Seu e-mail ou senha estão inválidos'
-//       })
-//     });
-// }
-
 const authStore = useAuthStore();
-
 const router = useRouter();
 
 async function login(values) {
@@ -88,9 +66,11 @@ async function login(values) {
   authStore
     .sanctum()
     .then(() =>
+      // axios.get('api/me')
       authStore
         .login(values.email, values.password)
         .then(() => {
+          // axios.get('api/me')
           router.push({ name: 'dashboard' })
         })
         .catch(() => {
