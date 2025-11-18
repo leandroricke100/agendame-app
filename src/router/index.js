@@ -1,8 +1,9 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import MainRoutes from './MainRoutes';
 import AuthRoutes from './AuthRoutes';
+import { useAuthStore } from '../stores/auth';
 
-export default createRouter({
+const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     MainRoutes,
@@ -14,3 +15,11 @@ export default createRouter({
   ]
 });
 
+router.beforeEach(async (to, from, next) => {
+  const authStore = useAuthStore()
+  await authStore.sanctum()
+  next();
+})
+
+
+export default router;

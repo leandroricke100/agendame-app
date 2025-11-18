@@ -63,20 +63,13 @@ const router = useRouter();
 async function login(values) {
   feedbackMessage.value = ''
 
-  authStore
-    .sanctum()
-    .then(() =>
-      // axios.get('api/me')
-      authStore
-        .login(values.email, values.password)
-        .then(() => {
-          // axios.get('api/me')
-          router.push({ name: 'dashboard' })
-        })
-        .catch(() => {
-          feedbackMessage.value = 'Seu e-mail ou senha estão inválidos'
-        })
-    );
+  try {
+    await authStore.login(values.email, values.password)
+    router.push({ name: 'dashboard' })
+  } catch (error) {
+    feedbackMessage.value =
+      error.response?.data?.message || 'Seu e-mail ou senha estão inválidos'
+  }
 }
 
 
