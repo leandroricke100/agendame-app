@@ -5,7 +5,6 @@ import { useMeStore } from "./me";
 export const useAuthStore = defineStore("auth", {
   state: () => ({}),
   actions: {
-
     async sanctum() {
       return await axios.get('sanctum/csrf-cookie')
     },
@@ -23,6 +22,13 @@ export const useAuthStore = defineStore("auth", {
         console.error(error.response.data);
         throw error;
       }
+    },
+    async register(firstName, email, password) {
+      return await axios.post("api/register", {
+        first_name: firstName,
+        email,
+        password,
+      })
     },
   }
 
