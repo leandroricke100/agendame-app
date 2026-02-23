@@ -1,64 +1,64 @@
-name: Deploy Vue to VPS (SSH)
+# name: Deploy Vue to VPS (SSH)
 
-on:
-  push:
-    branches: [ master ]  # ajuste se seu branch for "main"
+# on:
+#   push:
+#     branches: [ master ]  # ajuste se seu branch for "main"
 
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
+# jobs:
+#   deploy:
+#     runs-on: ubuntu-latest
 
-    steps:
-      # (Opcional) Apenas para log — o build acontece no servidor
-      - name: Checkout (for logs only)
-        uses: actions/checkout@v4
+#     steps:
+#       # (Opcional) Apenas para log — o build acontece no servidor
+#       - name: Checkout (for logs only)
+#         uses: actions/checkout@v4
 
-      # Conecta no servidor e roda os comandos de deploy lá
-      - name: SSH to VPS and deploy
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.SSH_HOST }}        # ex: my-vps (ou IP)
-          username: ${{ secrets.SSH_USER }}    # ex: agendame-app
-          key: ${{ secrets.SSH_KEY }}          # sua PRIVATE key (formato PEM)
-          port: 22                             # sua porta está aberta (22)
-          script_stop: true
-          script: |
-            set -euo pipefail
+#       # Conecta no servidor e roda os comandos de deploy lá
+#       - name: SSH to VPS and deploy
+#         uses: appleboy/ssh-action@v1.0.3
+#         with:
+#           host: ${{ secrets.SSH_HOST }}        # ex: my-vps (ou IP)
+#           username: ${{ secrets.SSH_USER }}    # ex: agendame-app
+#           key: ${{ secrets.SSH_KEY }}          # sua PRIVATE key (formato PEM)
+#           port: 22                             # sua porta está aberta (22)
+#           script_stop: true
+#           script: |
+#             set -euo pipefail
 
-            # Carrega ambiente do usuário (nvm/corepack, etc.)
-            if [ -f "$HOME/.bashrc" ]; then
-              source "$HOME/.bashrc"
-            fi
-            if [ -f "$HOME/.profile" ]; then
-              source "$HOME/.profile"
-            fi
+#             # Carrega ambiente do usuário (nvm/corepack, etc.)
+#             if [ -f "$HOME/.bashrc" ]; then
+#               source "$HOME/.bashrc"
+#             fi
+#             if [ -f "$HOME/.profile" ]; then
+#               source "$HOME/.profile"
+#             fi
 
-            echo "-> Indo para a pasta do projeto"
-            cd "$HOME/htdocs/agendame-app"
+#             echo "-> Indo para a pasta do projeto"
+#             cd "$HOME/htdocs/agendame-app"
 
-            echo "-> Garantindo árvore limpa e atualizada"
-            git fetch origin
-            # Evita erro de 'local changes' e arquivos não rastreados (.yarn/*, yarn.lock)
-            git reset --hard origin/master
-            # Se tiver submódulos (provável que não)
-            if [ -f .gitmodules ]; then
-              git submodule update --init --recursive
-            fi
+#             echo "-> Garantindo árvore limpa e atualizada"
+#             git fetch origin
+#             # Evita erro de 'local changes' e arquivos não rastreados (.yarn/*, yarn.lock)
+#             git reset --hard origin/master
+#             # Se tiver submódulos (provável que não)
+#             if [ -f .gitmodules ]; then
+#               git submodule update --init --recursive
+#             fi
 
-            echo "-> Habilitando Corepack (Yarn 4)"
-            command -v corepack >/dev/null 2>&1 || true
-            corepack enable || true
+#             echo "-> Habilitando Corepack (Yarn 4)"
+#             command -v corepack >/dev/null 2>&1 || true
+#             corepack enable || true
 
-            # (Opcional) Fixar Yarn estável
-            yarn set version stable || true
+#             # (Opcional) Fixar Yarn estável
+#             yarn set version stable || true
 
-            echo "-> Instalando dependências (respeitando lockfile se existir)"
-            # Tenta modo imutável primeiro (Yarn 4). Se não, cai no normal.
-            yarn install --immutable || yarn install
+#             echo "-> Instalando dependências (respeitando lockfile se existir)"
+#             # Tenta modo imutável primeiro (Yarn 4). Se não, cai no normal.
+#             yarn install --immutable || yarn install
 
-            echo "-> Build de produção"
-            yarn run build
+#             echo "-> Build de produção"
+#             yarn run build
 
-            # Se seu Nginx aponta para ~/htdocs/agendame-app/dist,
-            # não precisa reiniciar nada: os arquivos já foram atualizados.
-            echo "-> Deploy concluído (dist/ atualizado)"
+#             # Se seu Nginx aponta para ~/htdocs/agendame-app/dist,
+#             # não precisa reiniciar nada: os arquivos já foram atualizados.
+#             echo "-> Deploy concluído (dist/ atualizado)"
